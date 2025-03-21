@@ -45,3 +45,8 @@ The tool will process mass spectrometry data to distinguish bound molecules from
 
 - You can also download a compiled version of the software as an .exe file under this link.
 https://1drv.ms/u/c/fc611cd214a4ebd4/EbX4Tc5rY4NPnvEcMM6Ztv0Bi3vRNqwXkbTDBClnE6UUNQ?e=TG7w50
+
+## Disclaimer
+This software was developed by students at TU Darmstadt as part of a Bachelorpraktikum. While we strive to ensure its functionality and accuracy, it is provided as-is with only minimal support and updates.
+
+We still greatly appreciate any feedback or feature requests, which can be shared via [your preferred contact method, e.g., GitHub Issues or email]. However, please note that future maintenance and improvements will be limited.
