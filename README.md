@@ -13,7 +13,7 @@ The tool will process mass spectrometry data to distinguish bound molecules from
 
 ## Features
 - **Protein-Ligand Interaction Identification**: Identifies bound molecules based on mass spectrometry data.
-- **Statistical & Machine Learning Approaches**: Applies statistical testing or machine learning for classifying signals as bound or unbound ligands.
+- **Statistical Approaches**: Applies statistical testing for classifying signals as bound or unbound ligands.
 - **Curve Visualization**: Outputs graphical representations of protein and ligand curves, with mass/charge data, into a PDF report.
 - **High-Throughput Screening**: Capable of handling large datasets with multiple ligand candidates, reducing manual effort.
 
