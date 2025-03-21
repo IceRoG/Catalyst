@@ -44,4 +44,4 @@ The tool will process mass spectrometry data to distinguish bound molecules from
 - The executable file will be generated in the **dist** folder.
 
 - You can also download a compiled version of the software as an .exe file under this link.
-- https://1drv.ms/u/c/fc611cd214a4ebd4/EbX4Tc5rY4NPnvEcMM6Ztv0Bi3vRNqwXkbTDBClnE6UUNQ?e=TG7w50
+https://1drv.ms/u/c/fc611cd214a4ebd4/EbX4Tc5rY4NPnvEcMM6Ztv0Bi3vRNqwXkbTDBClnE6UUNQ?e=TG7w50
