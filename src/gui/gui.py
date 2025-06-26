@@ -64,7 +64,7 @@ class ProteinLigandAnalyzerApp:
         self.exit_button = None
         self.pdf_button = None
 
-        # Default folder where to safe the pdf
+        # Default folder where to save the pdf
         if platform.system() == 'Windows':
             try:
                 import winreg
@@ -247,7 +247,7 @@ class ProteinLigandAnalyzerApp:
 
         result_label = tk.Label(self.output_frame, text="Result folder:", font=self.label_font, bg="#f5f5f5", fg="#555")
         result_label.grid(row=j, column=0)
-        self.result_button = tk.Button(self.output_frame, text="Select Folder", command=lambda: self.safe_output_folder(), font=self.button_font, bg="#2196F3", fg="white", height=1, width=self.same_width)
+        self.result_button = tk.Button(self.output_frame, text="Select Folder", command=lambda: self.save_output_folder(), font=self.button_font, bg="#2196F3", fg="white", height=1, width=self.same_width)
         self.result_button.grid(row=j, column=1, padx=5, pady=2)
         j += 1
 
@@ -364,7 +364,7 @@ class ProteinLigandAnalyzerApp:
         self.graph_frame.pack(pady=(10, 20), padx=10, fill="x")
 
     def show_modi_input(self, modus):
-        self.mode = modus
+        self.mode.set(modus)
         i = 1
         for widget in self.modi_frame.winfo_children():
             widget.destroy()
@@ -642,11 +642,11 @@ class ProteinLigandAnalyzerApp:
             self.settings.general_settings.data_path.value = None
 
         if file_path:
+            self.settings.general_settings.data_path.value = file_path
             self.upload_button.config(bg="green")
-            self.file_label.config(text=f"Input data file: {file_path}")
+            self.file_label.config(text=f"Input data file: {self.settings.general_settings.data_path.value}")
             self.file_label.pack()
             self.analyze_button.config(state=tk.NORMAL)  # Enable the Analyze button
-            self.settings.general_settings.data_path.value = file_path
 
             try:
                 # Fill in the last scan number
@@ -664,7 +664,7 @@ class ProteinLigandAnalyzerApp:
             except FileNotFoundError as e:
                 self.error(str(e), "log show")
 
-            if self.mode == 1 and not loading_setting:
+            if self.mode.get() == 1 and not loading_setting:
                 self.entry_start_value_mz.delete(0, tk.END)
                 self.entry_start_value_mz.insert(0, f"{self.settings.untargeted_settings.start_mz.value}")
                 self.entry_end_value_mz.delete(0, tk.END)
@@ -681,6 +681,7 @@ class ProteinLigandAnalyzerApp:
             self.settings.targeted_settings.ligands_path.value = None
 
         if file_path:
+            self.tracked_ligands = []
             with open(file_path, 'r') as file:
                 for line in file:
                     try:
@@ -690,8 +691,9 @@ class ProteinLigandAnalyzerApp:
                         self.tracked_ligands = []
                         break
 
+            self.settings.targeted_settings.ligands_path.value = file_path
             self.ligands_upload_button.config(bg="green")
-            self.ligand_label.config(text=f"Ligand file: {file_path}")
+            self.ligand_label.config(text=f"Ligand file: {self.settings.targeted_settings.ligands_path.value}")
             self.ligand_label.pack()
 
             self.callback(f"Read ligands: {self.tracked_ligands}", "log")
@@ -700,7 +702,7 @@ class ProteinLigandAnalyzerApp:
             self.ligands_upload_button.config(bg="#2196F3")
             self.ligands_upload_button.forget()
 
-    def safe_output_folder(self, folder_path: str = "None"):
+    def save_output_folder(self, folder_path: str = "None"):
         if folder_path == "None":
             folder_path = filedialog.askdirectory(title="Select a folder in which the results folder will be saved")
         elif folder_path and not os.path.exists(folder_path):
@@ -708,10 +710,10 @@ class ProteinLigandAnalyzerApp:
             self.settings.output_settings.output_folder.value = None
 
         if folder_path:
+            self.settings.output_settings.output_folder.value = folder_path
             self.result_button.config(bg="green")
             self.output_folder_label.config(text=f"Output folder: {self.settings.output_settings.output_folder.value}")
             self.output_folder_label.pack()
-            self.settings.output_settings.output_folder.value = folder_path
         else:
             self.result_button.config(bg="#2196F3")
             self.output_folder_label.forget()
@@ -820,9 +822,9 @@ class ProteinLigandAnalyzerApp:
         self.settings.general_settings.analysis_start.value = self.type_returning_int(self.entry_start_x_analysis, "Analysis scan-start")
         self.settings.general_settings.analysis_end.value = self.type_returning_int(self.entry_end_x_analysis, "Analysis scan-end")
 
-        self.settings.general_settings.analysis_mode.value = {0: "Targeted", 1: "Untargeted"}[self.mode]
+        self.settings.general_settings.analysis_mode.value = {0: "Targeted", 1: "Untargeted"}[self.mode.get()]
 
-        if self.mode == 1:
+        if self.mode.get() == 1:
             self.settings.untargeted_settings.charge_state_exclusion.value = self.type_returning_int(self.entry_charge_exclusion_range, "Protein charge state exclusion range")
             self.settings.untargeted_settings.start_mz.value = self.type_returning_float(self.entry_start_value_mz, "Start m/z")
             self.settings.untargeted_settings.end_mz.value = self.type_returning_float(self.entry_end_value_mz, "End m/z")
@@ -858,7 +860,7 @@ class ProteinLigandAnalyzerApp:
             self.update_setting(self.entry_range_threshold_ligand, f"{self.settings.untargeted_settings.ligand_group_range.value}")
             self.update_setting(self.entry_protein_exclusion_window, f"{self.settings.untargeted_settings.protein_exclusion_window.value}")
 
-        self.safe_output_folder(self.settings.output_settings.output_folder.value)
+        self.save_output_folder(self.settings.output_settings.output_folder.value)
         self.entry_normalization_mode.set(self.settings.output_settings.normalization_mode.value)
         self.output_choice.set(self.settings.output_settings.graph_combination.value)
         self.csv_choice.set("YES" if self.settings.output_settings.csv_files.value else "NO")
@@ -896,7 +898,7 @@ class ProteinLigandAnalyzerApp:
 
         try:
             self.store_fields_in_settings()
-            if self.mode == 0:
+            if self.mode.get() == 0:
                 if not self.tracked_ligands:
                     raise ValueError("No ligands selected!")
 
@@ -910,7 +912,7 @@ class ProteinLigandAnalyzerApp:
 
         if self.result_text.get("1.0", "end").strip() == "":
             # Start the background thread for the analysis
-            if self.mode == 1:
+            if self.mode.get() == 1:
                 analysis_thread = threading.Thread(target=self.run_untargeted_analysis)
                 analysis_thread.start()
             else:
@@ -924,7 +926,7 @@ class ProteinLigandAnalyzerApp:
 
         try:
             self.ligand = []
-            filtered_mz_values, self.ligand, filtered_results, self.protein, self.scan_date = analyzer_helper.analyze_untargeted(
+            filtered_mz_values, self.ligand, unnormalized_ligand_curves, filtered_results, self.protein, self.scan_date = analyzer_helper.analyze_untargeted(
                 file_path=self.settings.general_settings.data_path.value,
                 protein_mz_value=self.settings.general_settings.protein_mz.value,
                 protein_charge_state=self.settings.general_settings.protein_charge_state.value,
@@ -954,7 +956,7 @@ class ProteinLigandAnalyzerApp:
             )
 
             # Once the analysis is complete, update the GUI
-            self.update_gui_after_analysis(filtered_mz_values, filtered_results)
+            self.update_gui_after_analysis(filtered_mz_values, filtered_results, unnormalized_ligand_curves)
         except Exception as e:
             self.error(f"Error during analysis: {str(e)}", "log show")
 
@@ -963,7 +965,7 @@ class ProteinLigandAnalyzerApp:
         try:
             # Perform the analysis
             self.ligand = []
-            filtered_mz_values, self.ligand, filtered_results, self.protein, self.scan_date = analyzer_helper.analyze_targeted(
+            filtered_mz_values, self.ligand, unnormalized_ligand_curves, filtered_results, self.protein, self.scan_date = analyzer_helper.analyze_targeted(
                 file_path=self.settings.general_settings.data_path.value,
                 protein_mz_value=self.settings.general_settings.protein_mz.value,
                 protein_charge_state=self.settings.general_settings.protein_charge_state.value,
@@ -987,11 +989,12 @@ class ProteinLigandAnalyzerApp:
             )
 
             # Once the analysis is complete, update the GUI
-            self.update_gui_after_analysis(filtered_mz_values, filtered_results)
+            self.update_gui_after_analysis(filtered_mz_values, filtered_results, unnormalized_ligand_curves)
         except Exception as e:
             self.error(f"Error during analysis: {str(e)}", "log show")
 
-    def update_gui_after_analysis(self, filtered_mz_values, filtered_results):
+    def update_gui_after_analysis(self, filtered_mz_values, filtered_results, unnormalized_ligand_curves):
+        #TODO: Victor du hast jetzt unnormalized_ligand_curves
         self.graph_frame.pack()
 
         datagrapher = grapher.DataGrapher("Scan Number", "Intensity")
@@ -1067,7 +1070,7 @@ class ProteinLigandAnalyzerApp:
 
         # Generate settings file
         try:
-            self.store_fields_in_settings()
+            # self.store_fields_in_settings()
             self.catalyst_manager.export_settings(self.settings, output_directory)
         except Exception as e:
             self.error(str(e), "log")

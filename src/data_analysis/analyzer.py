@@ -37,7 +37,7 @@ def group_and_filter_results(mz_values, curves, results, range_threshold=3, prot
     valid_data = [
         (mz, curve, result)
         for mz, curve, result in zip(mz_values, curves, results)
-        if result[1] is not None and result[2] is not None
+        if result[0] and result[1] is not None and result[2] is not None
            and not any(mz_protein_charge - protein_range_threshold <= mz <= mz_protein_charge + protein_range_threshold
                        for mz_protein_charge in mz_protein_charges)
     ]
@@ -197,7 +197,7 @@ class CurveSimilarityDetector:
 
             # Calculate DTW and Pearson values on the smoothed curves
             dtw_distance = _calculate_dtw(self.protein_curve, smoothed_b)
-            is_similar = dtw_distance < self.dtw_threshold and pearson_similar
+            is_similar = (dtw_distance < self.dtw_threshold) and pearson_similar
 
             return is_similar, dtw_distance, pearson_corr
         except Exception as e:

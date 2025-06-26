@@ -44,7 +44,7 @@ class Untargeted_settings:
         self.charge_state_exclusion = Setting("charge_state_exclusion", "Protein charge state exclusion range", 3, int)
         self.start_mz = Setting("start_mz", "Start m/z", 50.0, float)
         self.end_mz = Setting("end_mz", "End m/z", 8000.0, float)
-        self.ligand_group_range = Setting("ligand_group_range", "Ligand m/z grouping range", 4.0, float)
+        self.ligand_group_range = Setting("ligand_group_range", "Ligand m/z grouping range", 1.0, float)
         self.protein_exclusion_window = Setting("protein_exclusion_window", "Protein exclusion window", 5.0, float)
 
     def get_settings(self):

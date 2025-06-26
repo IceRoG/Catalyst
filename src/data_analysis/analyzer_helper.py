@@ -145,7 +145,7 @@ def analyze_targeted(file_path, catalyst_manager, ligand_mz_values, dtw_threshol
             normalized_return_protein_curve = normalize_curve(protein_curve)
             pass
 
-    return ligand_mz_values, normalized_return_bin_curves, similarities, normalized_return_protein_curve, parser.CreationDate
+    return ligand_mz_values, normalized_return_bin_curves, ligand_curves, similarities, normalized_return_protein_curve, parser.CreationDate
 
 def analyze_untargeted(file_path, catalyst_manager, dtw_threshold=12, pearson_threshold=0.85,
                        window_length=5, polyorder=3, protein_mz_value=0, start_value=50, end_value=8000,
@@ -302,5 +302,5 @@ def analyze_untargeted(file_path, catalyst_manager, dtw_threshold=12, pearson_th
             normalized_return_protein_curve = normalize_curve(protein_curve)
             pass
 
-    return filtered_mz_values, normalized_return_bin_curves, filtered_results, normalized_return_protein_curve, parser.CreationDate
+    return filtered_mz_values, normalized_return_bin_curves, filtered_curves, filtered_results, normalized_return_protein_curve, parser.CreationDate
 
