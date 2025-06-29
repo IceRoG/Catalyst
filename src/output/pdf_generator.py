@@ -9,8 +9,8 @@ from src.settings.settings import Settings
 
 
 def generate_PDF(directory : str, scan_date : str, settings: Settings, protein_curve : list[float], protein_mz : float, 
-                ligand_curves : list[list[float]], ligand_mzs : list[float], ligand_similarities : list[tuple[bool, float, float]],
-                single_plot : bool = True, normalized : bool = True, x_axis : list[int] = None):
+                ligand_curves : list[list[float]], ligand_mzs : list[float], ligand_similarities : list[tuple[bool, float, float]], 
+                ligand_intensities : list[float], single_plot : bool = True, normalized : bool = True, x_axis : list[int] = None):
     """
         Generates a PDF in the given directory containing the given scan date and plotting the given protein/ligands.
 
@@ -21,7 +21,8 @@ def generate_PDF(directory : str, scan_date : str, settings: Settings, protein_c
             protein_mz          (float): The m/z value of the protein
             ligand_curves       (list of lists of float): Intensity values to plot for each of the ligands
             ligand_mzs          (list of float): The m/z values of the ligands
-            ligand_similarities (list of tuples (bool, float, float)): The similarity for each ligand as (Is similar?, Pearson, DTW)
+            ligand_similarities (list of tuples (bool, float, float)): The similarity for each ligand as (Is similar?, DTW, Pearson)
+            ligand_intensities  (list of float): The EIC intensities of the ligands
             single_plot         (bool): Whether protein and ligand should both be displayed in one single plot (default) or in two separate ones
             normalized          (bool): Whether intensity values are normalized
             x_axis              (list of integer or None): The x-axis (scan numbers analyzed) for the output, None meaning 0, 1, ...
@@ -35,6 +36,18 @@ def generate_PDF(directory : str, scan_date : str, settings: Settings, protein_c
 
     # Initialize grapher and figure to plot on
     grapher = DataGrapher("Scan Number", "Intensity")
+
+    # Add scatterplot of ligand similarities (Pearson, DTW)
+    scatterplot_figure = Figure(figsize=(6, 4), dpi=100)
+    scatterplot_graph = os.path.join(directory, f"scatterplot_graph" + ".png")
+    grapher.save_ligand_scatterplot(ligand_similarities, ligand_intensities, scatterplot_figure, scatterplot_graph)
+    pdf.add_graphic(scatterplot_graph, "Pearson-DTW ligand scatterplot")
+    
+    # Add bar chart of ligand EIC intensities
+    bar_chart_figure = Figure(figsize=(6, 4), dpi=100)
+    bar_chart_graph = os.path.join(directory, f"bar_chart_graph" + ".png")
+    grapher.save_EIC_bar_chart(ligand_mzs, ligand_intensities, bar_chart_figure, bar_chart_graph)
+    pdf.add_graphic(bar_chart_graph, "Ligand EIC intensities")
 
     if(single_plot):
         # Add graphs for comparisons between intensities for protein and ligands

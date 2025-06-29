@@ -1,6 +1,8 @@
 import os
 
 from matplotlib.figure import Figure
+from matplotlib import colormaps
+from numpy import stack
 
 class GraphingError(ValueError):
     pass
@@ -114,8 +116,6 @@ class DataGrapher:
         
         # Iterate over given sets of x and y-values
         for i in range(len(y_values_list)):
-        
-            # TODO: add step for range based on functions
             
             # Extract x and y values for current iteration
             x_values = range(len(y_values_list[0])) if x_values_list is None else x_values_list[i]
@@ -133,6 +133,78 @@ class DataGrapher:
         # Add the title if given
         if not title is None: plot.set_title(title)
 
+
+    def plot_EIC_bar_chart(self, ligand_mzs : list[float], ligand_intensities : list[float], figure : Figure, subplot : int = 111):
+        """
+            Plots the bar chart of the given EIC intensities for each ligand m/z onto the given figure.
+
+            Parameters:
+                ligand_mzs          (list of float): The m/z values of the ligands
+                ligand_intensities  (list of float): The EIC intensities of the ligands
+                figure              (matplotlib figure): The figure where the graph will be plotted on for further usage
+                subplot             (integer): The subplot inside the figure (see matplotlib documentation)
+        """
+        
+        if(subplot < 111 or subplot > 999 or (subplot % 10) > ((subplot //10 % 10) * (subplot //100))):
+            raise GraphingError(f"Subplot parameter {subplot} invalid - refer to matplotlib documentation")
+        
+        # Specify part of figure to plot onto (subplot)
+        plot = figure.add_subplot(subplot)
+        
+        # Set axis labels
+        plot.set_xlabel("m/z")
+        plot.set_ylabel("EIC intensity")
+
+        # Plot EIC intensity values
+        plot.bar(list(map(str, list(map(lambda x : round(x, 1), ligand_mzs)))), ligand_intensities, width = 0.8, color = 'b')
+        
+        # Make x axis more readable
+        plot.set_xticklabels(list(map(str, list(map(lambda x : round(x, 2), ligand_mzs)))), rotation = 60, horizontalalignment = "right", fontsize='x-small')
+
+
+    def plot_similarity_scatterplot(self, ligand_similarities : list[tuple[bool, float, float]],  ligand_intensities : list[float],
+                                figure : Figure, subplot : int = 111):
+        """
+            Plots the scatterplot of the given Pearson similarities and DTW scores onto the given figure.
+
+            Parameters:
+                ligand_similarities (list of tuples (bool, float, float)): The similarity for each ligand as (Is similar?, DTW, Pearson)
+                ligand_intensities  (list of float): The EIC intensities of the ligands
+                figure              (matplotlib figure): The figure where the graph will be plotted on for further usage
+                subplot             (integer): The subplot inside the figure (see matplotlib documentation)
+        """
+        
+        if(subplot < 111 or subplot > 999 or (subplot % 10) > ((subplot //10 % 10) * (subplot //100))):
+            raise GraphingError(f"Subplot parameter {subplot} invalid - refer to matplotlib documentation")
+        
+        # Specify part of figure to plot onto (subplot)
+        plot = figure.add_subplot(subplot)
+        
+        # Set axis labels
+        plot.set_xlabel("Pearson similarity (%)")
+        plot.set_ylabel("DTW score")
+        
+        # Invert y axis for DTW values (want to have better scores be higher)
+        plot.invert_yaxis()
+        
+        # Enable grid for the visualization
+        plot.grid(True)
+        
+        # Construct lists of similarity values
+        dtw_scores = []
+        pearson_similarities = []
+        for tuple in ligand_similarities:
+            dtw_scores.append(tuple[1])
+            pearson_similarities.append(tuple[2] * 100) # Convert to percentage
+
+        # Plot similarity values
+        plot.scatter(pearson_similarities, dtw_scores, c = ligand_intensities, cmap = colormaps.get_cmap("bwr"))
+                
+        # Add a color legend for clarity
+        temp_plot = Figure(figsize=(6, 4), dpi=100).add_subplot(111)
+        color_map = temp_plot.imshow(stack([ligand_intensities, ligand_intensities]), cmap = colormaps.get_cmap("bwr"))
+        figure.colorbar(color_map, ax = plot, location = "top", label = "EIC intensity")     
+    
 
     def save_comparison_graph(self, x_values : list[float], protein_curve : list[float], protein_mz : float, ligand_curve : list[float], ligand_mz : float, 
                               figure : Figure, path : str, protein_color : str = 'r', ligand_color : str = 'b', y_axis : list[float] = [0, 1.05]):
@@ -198,10 +270,55 @@ class DataGrapher:
                 title         (string): The title of the plot to display, None => no title
                 y_axis        (list of float): The two float values used as start and end for the y_axis, default = [0, 1.05]
         """
+        
         if(not os.path.exists(os.path.dirname(path))): raise GraphingError(f"Folder to save in: {path} does not exist")
 
         # Plot graph
         self.plot_graphs(x_values_list, y_values_list, figure, 111, color_list, mz_value_list, title, y_axis)
+
+        # Save graph as image
+        figure.savefig(path, bbox_inches='tight') # 'tight' ensures that no part of figure is cut off in image
+        self.files.append(path)
+
+
+    def save_EIC_bar_chart(self, ligand_mzs : list[float], ligand_intensities : list[float],
+                                figure : Figure, path : str):
+        """
+            Plots the scatterplot of the given Pearson similarities and DTW scores onto the given figure.
+
+            Parameters:
+                ligand_mzs          (list of float): The m/z values of the ligands
+                ligand_intensities  (list of float): The EIC intensities of the ligands
+                figure              (matplotlib figure): The figure where the graph will be plotted on for further usage
+                path                (raw string): The path where the graph image will be saved upon completion
+        """
+        
+        if(not os.path.exists(os.path.dirname(path))): raise GraphingError(f"Folder to save in: {path} does not exist")
+
+        # Plot graph
+        self.plot_EIC_bar_chart(ligand_mzs, ligand_intensities, figure)
+
+        # Save graph as image
+        figure.savefig(path, bbox_inches='tight') # 'tight' ensures that no part of figure is cut off in image
+        self.files.append(path)
+
+
+    def save_ligand_scatterplot(self, ligand_similarities : list[tuple[bool, float, float]],  ligand_intensities : list[float],
+                                figure : Figure, path : str):
+        """
+            Plots the scatterplot of the given Pearson similarities and DTW scores onto the given figure.
+
+            Parameters:
+                ligand_similarities (list of tuples (bool, float, float)): The similarity for each ligand as (Is similar?, DTW, Pearson)
+                ligand_intensities  (list of float): The EIC intensities of the ligands
+                figure              (matplotlib figure): The figure where the graph will be plotted on for further usage
+                path                (raw string): The path where the graph image will be saved upon completion
+        """
+        
+        if(not os.path.exists(os.path.dirname(path))): raise GraphingError(f"Folder to save in: {path} does not exist")
+
+        # Plot graph
+        self.plot_similarity_scatterplot(ligand_similarities, ligand_intensities, figure)
 
         # Save graph as image
         figure.savefig(path, bbox_inches='tight') # 'tight' ensures that no part of figure is cut off in image

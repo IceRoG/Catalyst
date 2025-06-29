@@ -10,7 +10,7 @@ from tkinter import filedialog, messagebox, ttk
 from tkinter import font as tkFont
 import src.grapher as grapher
 from src.data_analysis import analyzer_helper
-from src.output.csv_generator import generateCSV
+from src.output.csv_generator import generateGeneralCSV, generateIntensitiesCSV
 from src.output.pdf_generator import generate_PDF
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -994,7 +994,7 @@ class ProteinLigandAnalyzerApp:
             self.error(f"Error during analysis: {str(e)}", "log show")
 
     def update_gui_after_analysis(self, filtered_mz_values, filtered_results, unnormalized_ligand_curves):
-        #TODO: Victor du hast jetzt unnormalized_ligand_curves
+
         self.graph_frame.pack()
 
         datagrapher = grapher.DataGrapher("Scan Number", "Intensity")
@@ -1005,7 +1005,6 @@ class ProteinLigandAnalyzerApp:
             self.result_frame.pack_forget()
             self.analyze_frame.pack_forget()
             self.modi_frame.pack_forget()
-            #self.select_mode_frame.pack_forget()
             self.output_frame.pack_forget()
 
             figure = plt.Figure(figsize=(6, 4), dpi=100)
@@ -1019,9 +1018,7 @@ class ProteinLigandAnalyzerApp:
 
             # Add a display of the pearson and DTW values (similarity score) in the GUI
             figure.suptitle(f"Pearson similarity: {round(filtered_results[i][2]*100,2)}%   DTW score: {round(filtered_results[i][1], 2)}")
-            #self.generate_pdf([self.protein[1]], [i[1]])
             self.ligand_figures.append(figure)
-            #print(np.array(filtered_mz_values[i]))
 
         if not self.next_fig:
             self.next_fig = tk.Button(self.graph_frame, text="->", command=lambda: self.iterate_graph(1))
@@ -1062,11 +1059,15 @@ class ProteinLigandAnalyzerApp:
             self.exit_button= tk.Button(self.graph_frame, text="Go back", command=lambda: self.go_back())
             self.exit_button.pack(side="bottom", pady=2)
 
+        # Compute EIC intensities of ligands for output
+        ligand_eic_intensities = list(map(sum, unnormalized_ligand_curves))
+
         # Generate CSV files if wanted
         if self.csv_choice.get() == "YES":
+            generateGeneralCSV(output_directory, string_scan_date, filtered_mz_values, filtered_results, ligand_eic_intensities)
             for i in range(len(self.ligand)):
-                generateCSV(output_directory, string_scan_date, i + 1, self.ligand[i], filtered_mz_values[i], start_scan=int(self.entry_start_x_analysis.get()))
-            generateCSV(output_directory, string_scan_date, 0, self.protein, self.settings.general_settings.protein_mz.value, start_scan=int(self.entry_start_x_analysis.get()))
+                generateIntensitiesCSV(output_directory, string_scan_date, i + 1, self.ligand[i], filtered_mz_values[i], start_scan=int(self.entry_start_x_analysis.get()))
+            generateIntensitiesCSV(output_directory, string_scan_date, 0, self.protein, self.settings.general_settings.protein_mz.value, start_scan=int(self.entry_start_x_analysis.get()))
 
         # Generate settings file
         try:
@@ -1078,9 +1079,9 @@ class ProteinLigandAnalyzerApp:
         # Generate PDF with single/double plots
         single_plot = self.settings.output_settings.graph_combination.value == "One plot"
         generate_PDF(output_directory, self.scan_date[4::], self.settings, self.protein, self.settings.general_settings.protein_mz.value, 
-                     self.ligand, filtered_mz_values, filtered_results,
-                    single_plot=single_plot, normalized = not self.settings.output_settings.normalization_mode.value == 'No',
-                    x_axis=list(range(int(self.entry_start_x_analysis.get()),
+                     self.ligand, filtered_mz_values, filtered_results, ligand_eic_intensities,
+                     single_plot=single_plot, normalized = not self.settings.output_settings.normalization_mode.value == 'No',
+                     x_axis=list(range(int(self.entry_start_x_analysis.get()),
                                                                   int(int(self.entry_start_x_analysis.get()) + len(self.protein)))))
         self.pdf_button.config(state = tk.NORMAL)
 
@@ -1116,11 +1117,9 @@ class ProteinLigandAnalyzerApp:
         self.show_graphs(self.figure_counter)
 
     # 'Go back' button opens the beginning frames to start again
-    #TODO: Go back needs to reset the grapher class.
     def go_back(self):
         self.graph_frame.pack_forget()
         self.canvas_widget.destroy()
-        #self.select_mode_frame.pack()
         self.upload_frame.pack()
         self.output_frame.pack()
         self.modi_frame.grid()
@@ -1131,5 +1130,3 @@ class ProteinLigandAnalyzerApp:
         self.protein = []
         self.figure_counter = 0
         self.analyze_button.config(state=tk.NORMAL)
-        # Clear the result text box
-        #self.delete_textinput(self.result_text)
