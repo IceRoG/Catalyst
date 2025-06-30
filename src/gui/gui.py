@@ -880,7 +880,7 @@ class ProteinLigandAnalyzerApp:
 
     @staticmethod
     def open_help_pdf():
-        webbrowser.open_new_tab('http://github.com/BP-Gruppe-10/MSDA/blob/main/Guide.pdf')
+        webbrowser.open_new_tab('https://github.com/IceRoG/Catalyst/blob/main/Guide.pdf')
 
     @staticmethod
     def delete_textinput(textbox):
