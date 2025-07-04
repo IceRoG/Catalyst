@@ -189,6 +189,7 @@ class DataGrapher:
         
         # Enable grid for the visualization
         plot.grid(True)
+        plot.set_axisbelow(True)
         
         # Construct lists of similarity values
         dtw_scores = []
@@ -198,7 +199,7 @@ class DataGrapher:
             pearson_similarities.append(tuple[2] * 100) # Convert to percentage
 
         # Plot similarity values
-        plot.scatter(pearson_similarities, dtw_scores, c = ligand_intensities, cmap = colormaps.get_cmap("bwr"))
+        plot.scatter(pearson_similarities, dtw_scores, c = ligand_intensities, cmap = colormaps.get_cmap("bwr"), edgecolors = 'k')
                 
         # Add a color legend for clarity
         temp_plot = Figure(figsize=(6, 4), dpi=100).add_subplot(111)
